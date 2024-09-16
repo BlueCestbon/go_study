@@ -1,8 +1,9 @@
 package main
 
 import (
-	"study/about-import/lib1"
-	"study/about-import/lib2"
+	//_ "study/base/init-import/lib1"  // 此为匿名导入，可以使用init方法
+	"study/base/init-import/lib1"
+	"study/base/init-import/lib2"
 )
 
 func main() {
