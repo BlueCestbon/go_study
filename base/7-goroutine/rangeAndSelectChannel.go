@@ -19,6 +19,9 @@ func rangeChannel() {
 	for num := range ch {
 		fmt.Println("main:", num)
 	}
+	//for i := 0; i < 4; i++ {
+	//	fmt.Println("main: ", <-ch)
+	//}
 	fmt.Println("main end")
 
 }

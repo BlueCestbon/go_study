@@ -4,8 +4,10 @@ import "fmt"
 
 func appendFunc() {
 	s1 := make([]int, 3, 5) // len=3, cap=5
+	//s1 := []int{}
 	fmt.Println("len:", len(s1), "cap:", cap(s1))
 	fmt.Println(s1)
+	s1 = append(s1, 1)
 	s1 = append(s1, 1)
 	fmt.Println("len:", len(s1), "cap:", cap(s1))
 	fmt.Println(s1)
@@ -30,5 +32,5 @@ func copyFunc() {
 func main() {
 	//appendFunc()
 	//sliceFunc()
-	//copyFunc()
+	copyFunc()
 }

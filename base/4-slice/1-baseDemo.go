@@ -22,9 +22,9 @@ func sliceDemo() {
 }
 
 func sliceInit() {
-	//mySlice := []int{}
-	var mySlice []int
-	//mySlice := make([]int, 5)
+	//mySlice := []int{}  // mySlice is not nil
+	//var mySlice []int // mySlice is nil
+	mySlice := make([]int, 5) // mySlice is not nil
 	fmt.Println("len:", len(mySlice), "cap:", cap(mySlice))
 	if mySlice == nil {
 		fmt.Println("mySlice is nil")
@@ -35,5 +35,5 @@ func sliceInit() {
 
 func main() {
 	//sliceDemo()
-	//sliceInit()
+	sliceInit()
 }
