@@ -41,30 +41,20 @@ func findAnagrams(s string, p string) []int {
 	sCnt := [26]int{}
 	pCnt := [26]int{}
 
-	for _, str := range p {
-		pCnt[str - 'a']++
+	for _, value := range p {
+		pCnt[value-'a']++
 	}
 
-	result := []int{}
-
+	var result []int
 	left := 0
 	for right := 0; right < len(s); right++ {
-		sCnt[s[right] - 'a']++
-
-		//for {
-		//	if sCnt[s[right] - 'a'] <= pCnt[s[right] - 'a'] {
-		//		break
-		//	}
-		//	sCnt[s[left] - 'a']--
-		//	left++
-		//}
-
-		for sCnt[s[right] - 'a'] > pCnt[s[right] - 'a'] {
-			sCnt[s[left] - 'a']--
+		curCharIndex := s[right] - 'a'
+		sCnt[curCharIndex]++
+		for sCnt[curCharIndex] > pCnt[curCharIndex] {
+			sCnt[s[left]-'a']--
 			left++
 		}
-
-		if right - left + 1 == len(p) {
+		if right-left+1 == len(pCnt) {
 			result = append(result, left)
 		}
 	}
