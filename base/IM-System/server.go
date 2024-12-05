@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -39,6 +40,7 @@ func (server *Server) Handler(conn net.Conn) {
 	user := NewUser(conn, server)
 	user.Online()
 
+	isLive := make(chan bool)
 	// 接收客户端消息
 	go func() {
 		buf := make([]byte, 4096)
@@ -46,6 +48,7 @@ func (server *Server) Handler(conn net.Conn) {
 			n, err := conn.Read(buf)
 			// 如果读到的数据是0，就说明是正常关闭的
 			if n == 0 {
+				fmt.Println("关闭了 ", user, err)
 				user.Offline()
 				return
 			}
@@ -60,11 +63,29 @@ func (server *Server) Handler(conn net.Conn) {
 
 			// 用户处理这个消息
 			user.DoMsg(msg)
+			// 活跃了
+			isLive <- true
 		}
 	}()
 
 	// 阻塞当前的handler
-	select {}
+	for {
+		select {
+		case <-isLive:
+			// doNothing，只是为了会顺序执行下面的定时器，起到重置的作用
+		case <-time.After(10 * time.Second):
+			// 移除当前用户
+			server.mapLock.Lock()
+			delete(server.OnlineMap, user.Name)
+			server.mapLock.Unlock()
+			user.SendMsg("你已超时，强制下线")
+			// 关闭用户聊天的channel
+			close(user.C)
+			// 断开连接
+			user.Conn.Close()
+			return
+		}
+	}
 }
 
 // ListenServerChannel 监听server的广播信道，一旦有消息，就发送给全部在线的user
