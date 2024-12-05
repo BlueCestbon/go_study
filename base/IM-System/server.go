@@ -73,7 +73,7 @@ func (server *Server) Handler(conn net.Conn) {
 		select {
 		case <-isLive:
 			// doNothing，只是为了会顺序执行下面的定时器，起到重置的作用
-		case <-time.After(10 * time.Second):
+		case <-time.After(600 * time.Second):
 			// 移除当前用户
 			server.mapLock.Lock()
 			delete(server.OnlineMap, user.Name)

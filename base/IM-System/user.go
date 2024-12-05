@@ -60,8 +60,13 @@ func (user *User) Offline() {
 // DoMsg 处理消息
 func (user *User) DoMsg(msg string) {
 	// 以rename|开头，Unicode字符结尾
-	pattern := `^rename\|.*.$`
-	reRename := regexp.MustCompile(pattern)
+	patternRename := `^rename\|.*.$`
+	reRename := regexp.MustCompile(patternRename)
+
+	// 私聊消息的正则
+	patternPrivateChat := `^to\|.*.\|.*.$`
+	rePrivateChat := regexp.MustCompile(patternPrivateChat)
+
 	if msg == "who" {
 		for _, onlineUser := range user.Server.OnlineMap {
 			msg = "[" + onlineUser.Addr + "]" + onlineUser.Name + ":" + "在线...\n"
@@ -83,6 +88,20 @@ func (user *User) DoMsg(msg string) {
 			user.Server.mapLock.Unlock()
 			user.SendMsg("rename success to " + newName)
 		}
+	} else if rePrivateChat.MatchString(msg) {
+		userMsg := strings.Split(msg, "|")
+		toUserName, theMsg := userMsg[1], userMsg[2]
+		toUser, ok := user.Server.OnlineMap[toUserName]
+		if !ok {
+			user.SendMsg("当前用户不在线，请重新选择用户")
+			return
+		}
+		if len(theMsg) == 0 {
+			user.SendMsg("信息为空，请重新发送")
+			return
+		}
+		// 发给指定用户
+		toUser.SendMsg("[" + user.Addr + "]" + user.Name + ":" + theMsg)
 	} else {
 		go user.Server.BroadCast(user, msg)
 	}
@@ -90,5 +109,5 @@ func (user *User) DoMsg(msg string) {
 
 // SendMsg 发消息给当前客户端
 func (user *User) SendMsg(msg string) {
-	user.Conn.Write([]byte(msg))
+	user.Conn.Write([]byte(msg + "\n"))
 }
