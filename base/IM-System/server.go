@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -42,6 +43,30 @@ func (server *Server) Handler(conn net.Conn) {
 
 	// 广播当前用户上线消息
 	go server.BroadCast(user, "已上线")
+
+	// 接收客户端消息
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			// 如果读到的数据是0，就说明是正常关闭的
+			if n == 0 {
+				server.BroadCast(user, "下线")
+				return
+			}
+			// 以EOF结尾的
+			if err != nil && err != io.EOF {
+				fmt.Println("Conn Read err:", err)
+				return
+			}
+
+			// 去除用户信息的’\n‘
+			msg := string(buf[:n-1])
+
+			// 将这个消息进行广播
+			server.BroadCast(user, msg)
+		}
+	}()
 
 	// 阻塞当前的handler
 	select {}
