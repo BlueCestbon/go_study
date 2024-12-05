@@ -1,6 +1,10 @@
 package main
 
-import "net"
+import (
+	"net"
+	"regexp"
+	"strings"
+)
 
 type User struct {
 	Name   string
@@ -55,10 +59,29 @@ func (user *User) Offline() {
 
 // DoMsg 处理消息
 func (user *User) DoMsg(msg string) {
+	// 以rename|开头，Unicode字符结尾
+	pattern := `^rename\|.*.$`
+	reRename := regexp.MustCompile(pattern)
 	if msg == "who" {
 		for _, onlineUser := range user.Server.OnlineMap {
 			msg = "[" + onlineUser.Addr + "]" + onlineUser.Name + ":" + "在线...\n"
 			user.SendMsg(msg)
+		}
+	} else if reRename.MatchString(msg) {
+		newName := strings.Split(msg, "|")[1]
+		user.Server.mapLock.Lock()
+		// 判断新用户名是否存在
+		_, ok := user.Server.OnlineMap[newName]
+		if ok {
+			user.SendMsg("当前用户名已存在，请更换")
+		} else {
+			// 删除旧的
+			delete(user.Server.OnlineMap, user.Name)
+			user.Name = newName
+			// 添加新的
+			user.Server.OnlineMap[user.Name] = user
+			user.Server.mapLock.Unlock()
+			user.SendMsg("rename success to " + newName)
 		}
 	} else {
 		go user.Server.BroadCast(user, msg)
