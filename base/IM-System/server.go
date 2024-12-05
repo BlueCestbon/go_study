@@ -36,13 +36,8 @@ func (server *Server) BroadCast(user *User, msg string) {
 func (server *Server) Handler(conn net.Conn) {
 	// fmt.Println("成功建立连接")
 	// 用户上线，添加到OnlineMap
-	user := NewUser(conn)
-	server.mapLock.Lock()
-	server.OnlineMap[user.Name] = user
-	server.mapLock.Unlock()
-
-	// 广播当前用户上线消息
-	go server.BroadCast(user, "已上线")
+	user := NewUser(conn, server)
+	user.Online()
 
 	// 接收客户端消息
 	go func() {
@@ -51,7 +46,7 @@ func (server *Server) Handler(conn net.Conn) {
 			n, err := conn.Read(buf)
 			// 如果读到的数据是0，就说明是正常关闭的
 			if n == 0 {
-				server.BroadCast(user, "下线")
+				user.Offline()
 				return
 			}
 			// 以EOF结尾的
@@ -63,8 +58,8 @@ func (server *Server) Handler(conn net.Conn) {
 			// 去除用户信息的’\n‘
 			msg := string(buf[:n-1])
 
-			// 将这个消息进行广播
-			server.BroadCast(user, msg)
+			// 用户处理这个消息
+			user.SendMsg(msg)
 		}
 	}()
 
