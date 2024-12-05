@@ -53,7 +53,19 @@ func (user *User) Offline() {
 	go user.Server.BroadCast(user, "下线")
 }
 
-// SendMsg 处理消息
+// DoMsg 处理消息
+func (user *User) DoMsg(msg string) {
+	if msg == "who" {
+		for _, onlineUser := range user.Server.OnlineMap {
+			msg = "[" + onlineUser.Addr + "]" + onlineUser.Name + ":" + "在线...\n"
+			user.SendMsg(msg)
+		}
+	} else {
+		go user.Server.BroadCast(user, msg)
+	}
+}
+
+// SendMsg 发消息给当前客户端
 func (user *User) SendMsg(msg string) {
-	go user.Server.BroadCast(user, msg)
+	user.Conn.Write([]byte(msg))
 }
