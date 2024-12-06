@@ -32,9 +32,25 @@ func NewUser(conn net.Conn, server *Server) *User {
 }
 
 func (user *User) ListenMessage() {
-	for {
-		msg := <-user.C
-		user.Conn.Write([]byte(msg + "\n"))
+	//for {
+	//	msg := <-user.C
+	//	// 当超时下线的时候，这里user.C已经关闭了，取到的msg是零值。
+	//	// 并且下线的时候user.Conn已经close了，下面的Conn.Write就会报错
+	//	// 所以得让ListenMessage知道这个conn关闭了，或者是channel已经关闭了，就不要执行下面的了
+	//	_, err := user.Conn.Write([]byte(msg + "\n"))
+	//	if err != nil {
+	//		// 会一直输出err
+	//		fmt.Println("conn write err, ", err)
+	//		//return
+	//	}
+	//}
+
+	for msg := range user.C {
+		_, err := user.Conn.Write([]byte(msg + "\n"))
+		if err != nil {
+			//fmt.Println("conn write err, ", err)
+			panic(err)
+		}
 	}
 }
 
